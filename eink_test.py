@@ -16,7 +16,7 @@ def runtime_hours() -> str:
   return f"{h:.1f}"
 
 print('running eink_test.py...')
-print(f'runtime (hours): {runtime_hours()})
+print(f'runtime (hours): {runtime_hours()}')
 
 # Used to ensure the display is free in CircuitPython
 displayio.release_displays()

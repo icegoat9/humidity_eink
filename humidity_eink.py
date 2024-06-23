@@ -45,20 +45,25 @@ background_palette[0] = 0xFFFFFF  # White
 background = displayio.TileGrid(canvas, pixel_shader=background_palette, x=0, y=0)
 display_group.append(background)
 
+# are we booting up or waking from deep sleep?
+if not alarm.wake_alarm:
+    print("first boot, initializing 'sleep memory'")
+    alarm.sleep_memory[0] = 0
+else:
+    print("waking after deep sleep...")
+
 # Create a text object with some content
-text = displayio.Group(scale=2, x=20, y=30)
+text = displayio.Group(scale=2, x=20, y=20)
 text_area = label.Label(terminalio.FONT, text="Hello, damp world.", color=0x000000)
 text.append(text_area)
 display_group.append(text)
-
 
 def get_humidity_string():
     h = f"RH {aht_sensor.relative_humidity:.0f}%"
     print(h)  # to serial terminal, for debugging
     return h
 
-
-text2 = displayio.Group(scale=3, x=20, y=80)
+text2 = displayio.Group(scale=3, x=20, y=70)
 text2_area = label.Label(
     terminalio.FONT,
     text=get_humidity_string(),
@@ -72,27 +77,26 @@ text2_area = label.Label(
 text2.append(text2_area)
 display_group.append(text2)
 
+text3 = displayio.Group(scale=1, x=20, y=110)
+text3_area = label.Label(
+    terminalio.FONT,
+    text=f"previous RH reading {alarm.sleep_memory[0]}%",
+    color=0x000000,
+)
+text3.append(text3_area)
+display_group.append(text3)
+
 # Place the display group on the screen
 display.root_group = display_group
 
-# test of sleeping, to integrate...
-if not alarm.wake_alarm:
-    print("********************\n* first boot, initializing 'sleep memory'")
-    alarm.sleep_memory[0] = 0
-else:
-    print("* waking after deep sleep...")
-time_alarm = alarm.time.TimeAlarm(monotonic_time=time.monotonic() + 5)
-print(f"* sleep/wake cycles (from sleep memory): {alarm.sleep_memory[0]}")
-alarm.sleep_memory[0] += 1
-print("* entering deep sleep now...")
-alarm.exit_and_deep_sleep_until_alarms(time_alarm)
-print("deep sleep failed")
-
 while True:
     display.refresh()
+    # deep sleep until next update...
     # do not refresh this e ink display faster than 180 seconds
-    for i in range(18):
-        time.sleep(10)
-        get_humidity_string()  # to display to serial port for debugging
-    # update value of existing display object
-    text2_area.text = get_humidity_string()
+    time_alarm = alarm.time.TimeAlarm(monotonic_time=time.monotonic() + 180)
+    last_RH = int(aht_sensor.relative_humidity)
+    print(f"saving last RH reading {last_RH} to low-power sleep memory")
+    alarm.sleep_memory[0] = last_RH
+    print("entering deep sleep now...")
+    alarm.exit_and_deep_sleep_until_alarms(time_alarm)
+    print("deep sleep failed, reached unexpected location in code...")
