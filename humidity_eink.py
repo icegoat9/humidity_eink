@@ -6,6 +6,7 @@ import adafruit_il0373
 import terminalio
 from adafruit_display_text import label
 import adafruit_ahtx0
+import alarm
 
 print("running humidity_eink.py...")
 
@@ -73,6 +74,19 @@ display_group.append(text2)
 
 # Place the display group on the screen
 display.root_group = display_group
+
+# test of sleeping, to integrate...
+if not alarm.wake_alarm:
+    print("********************\n* first boot, initializing 'sleep memory'")
+    alarm.sleep_memory[0] = 0
+else:
+    print("* waking after deep sleep...")
+time_alarm = alarm.time.TimeAlarm(monotonic_time=time.monotonic() + 5)
+print(f"* sleep/wake cycles (from sleep memory): {alarm.sleep_memory[0]}")
+alarm.sleep_memory[0] += 1
+print("* entering deep sleep now...")
+alarm.exit_and_deep_sleep_until_alarms(time_alarm)
+print("deep sleep failed")
 
 while True:
     display.refresh()
