@@ -9,13 +9,14 @@ import adafruit_il0373
 import terminalio
 from adafruit_display_text import label
 
-def curtime_as_string():
-  t = time.localtime()
-  tstr = f"{t.tm_year}-{t.tm_mon:02}-{t.tm_mday:02} {t.tm_hour:02}:{t.tm_min:02}"
-  return tstr
+t0_powerup = time.monotonic()
+
+def runtime_hours() -> str:
+  h = (time.monotonic() - t0_powerup) / 3600
+  return f"{h:.1f}"
 
 print('running eink_test.py...')
-print(curtime_as_string())
+print(f'runtime (hours): {runtime_hours()})
 
 # Used to ensure the display is free in CircuitPython
 displayio.release_displays()
@@ -58,7 +59,7 @@ text2.append(text2_area)
 display_group.append(text2)
 
 text3 = displayio.Group(scale = 2, x=10, y=100)
-text3_area = label.Label(terminalio.FONT, text=curtime_as_string())
+text3_area = label.Label(terminalio.FONT, text=f"runtime (hours): {runtime_hours()}")
 text3.append(text3_area)
 display_group.append(text3)
 
@@ -66,11 +67,10 @@ display_group.append(text3)
 display.root_group = display_group
 
 while True:
-    #print(f'display refresh at {curtime_as_string()}')
     display.refresh()
     time.sleep(180)   # do not refresh this e ink display faster than 180 seconds
     # update value of existing display object
     text2_area.text = "Time passes..."
-    text3_area.text = curtime_as_string()
+    text3_area.text = f"runtime (hours): {runtime_hours()}"
     
 
