@@ -77,10 +77,10 @@ text2_area = label.Label(
 text2.append(text2_area)
 display_group.append(text2)
 
-text3 = displayio.Group(scale=1, x=20, y=110)
+text3 = displayio.Group(scale=1, x=180, y=65)
 text3_area = label.Label(
     terminalio.FONT,
-    text=f"previous RH reading {alarm.sleep_memory[0]}%",
+    text=f"previous\nRH {alarm.sleep_memory[0]}%",
     color=0x000000,
 )
 text3.append(text3_area)
