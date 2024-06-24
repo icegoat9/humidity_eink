@@ -105,7 +105,9 @@ while True:
     display.refresh()
     # deep sleep until next update...
     # do not refresh this e ink display faster than 180 seconds
-    time_alarm = alarm.time.TimeAlarm(monotonic_time=time.monotonic() + 180)
+    #time_alarm = alarm.time.TimeAlarm(monotonic_time=time.monotonic() + 180)
+    # wake and update screen hourly?
+    time_alarm = alarm.time.TimeAlarm(monotonic_time=time.monotonic() + 1800)
     last_RH = int(aht_sensor.relative_humidity)
     print(f"saving last RH reading {last_RH} to low-power sleep memory")
     alarm.sleep_memory[0] = last_RH
