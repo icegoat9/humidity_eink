@@ -7,8 +7,11 @@ import terminalio
 from adafruit_display_text import label
 import adafruit_ahtx0
 import alarm
+import rtc
 
 print("running humidity_eink.py...")
+
+rtc_object = rtc.RTC()
 
 # Used to ensure the display is free in CircuitPython
 displayio.release_displays()
@@ -48,9 +51,18 @@ display_group.append(background)
 # are we booting up or waking from deep sleep?
 if not alarm.wake_alarm:
     print("first boot, initializing 'sleep memory'")
-    alarm.sleep_memory[0] = 0
+    alarm.sleep_memory[0] = 0   # number of sleep/wake cycles since boot
+    alarm.sleep_memory[1] = 0   # last RH value
+#    prev_data = [0] * 20 
+#    prev_data_index = 0
 else:
     print("waking after deep sleep...")
+
+#def append_data(n):
+#    prev_data[prev_data_index] = n
+#    prev_data_index += 1
+#    if prev_data_index >= len(prev_data):
+#        prev_data_index = 0
 
 # Create a text object with some content
 text = displayio.Group(scale=2, x=20, y=20)
@@ -80,7 +92,7 @@ display_group.append(text2)
 text3 = displayio.Group(scale=2, x=170, y=70)
 text3_area = label.Label(
     terminalio.FONT,
-    text=f"(prev {alarm.sleep_memory[0]}%)",
+    text=f"(prev {alarm.sleep_memory[1]}%)",
     color=0x000000,
 )
 text3.append(text3_area)
@@ -91,7 +103,7 @@ tm = time.localtime()
 tmstr = f"{tm.tm_year}-{tm.tm_mon:02}-{tm.tm_mday:02} {tm.tm_hour:02}:{tm.tm_min:02}"
 text4_area = label.Label(
     terminalio.FONT,
-    text=f"last updated {tmstr}",
+    text=f"last updated {tmstr} ({alarm.sleep_memory[0]} sleeps)",
     color=0x000000,
 )
 text4.append(text4_area)
@@ -110,7 +122,8 @@ while True:
     time_alarm = alarm.time.TimeAlarm(monotonic_time=time.monotonic() + 1800)
     last_RH = int(aht_sensor.relative_humidity)
     print(f"saving last RH reading {last_RH} to low-power sleep memory")
-    alarm.sleep_memory[0] = last_RH
+    alarm.sleep_memory[0] += 1
+    alarm.sleep_memory[1] = last_RH
     print("entering deep sleep now...")
     alarm.exit_and_deep_sleep_until_alarms(time_alarm)
     print("deep sleep failed, reached unexpected location in code...")

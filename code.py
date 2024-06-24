@@ -1,4 +1,6 @@
-import humidity_eink
-#import led_test
+#import humidity_eink
+# import led_test
 #import adafruit_il0373_demo
-#import eink_test
+# import eink_test
+#import graph_test
+import test_sparkline
