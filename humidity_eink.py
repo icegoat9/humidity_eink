@@ -77,14 +77,26 @@ text2_area = label.Label(
 text2.append(text2_area)
 display_group.append(text2)
 
-text3 = displayio.Group(scale=1, x=180, y=65)
+text3 = displayio.Group(scale=2, x=170, y=70)
 text3_area = label.Label(
     terminalio.FONT,
-    text=f"previous\nRH {alarm.sleep_memory[0]}%",
+    text=f"(prev {alarm.sleep_memory[0]}%)",
     color=0x000000,
 )
 text3.append(text3_area)
 display_group.append(text3)
+
+text4 = displayio.Group(scale=1, x=20, y=115)
+tm = time.localtime()
+tmstr = f"{tm.tm_year}-{tm.tm_mon:02}-{tm.tm_mday:02} {tm.tm_hour:02}:{tm.tm_min:02}"
+text4_area = label.Label(
+    terminalio.FONT,
+    text=f"last updated {tmstr}",
+    color=0x000000,
+)
+text4.append(text4_area)
+display_group.append(text4)
+
 
 # Place the display group on the screen
 display.root_group = display_group
