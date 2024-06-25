@@ -103,7 +103,7 @@ tm = time.localtime()
 tmstr = f"{tm.tm_year}-{tm.tm_mon:02}-{tm.tm_mday:02} {tm.tm_hour:02}:{tm.tm_min:02}"
 text4_area = label.Label(
     terminalio.FONT,
-    text=f"last updated {tmstr} ({alarm.sleep_memory[0]} sleeps)",
+    text=f"runtime: {alarm.sleep_memory[0]} hours",
     color=0x000000,
 )
 text4.append(text4_area)
@@ -119,7 +119,7 @@ while True:
     # do not refresh this e ink display faster than 180 seconds
     #time_alarm = alarm.time.TimeAlarm(monotonic_time=time.monotonic() + 180)
     # wake and update screen hourly?
-    time_alarm = alarm.time.TimeAlarm(monotonic_time=time.monotonic() + 1800)
+    time_alarm = alarm.time.TimeAlarm(monotonic_time=time.monotonic() + 3600)
     last_RH = int(aht_sensor.relative_humidity)
     print(f"saving last RH reading {last_RH} to low-power sleep memory")
     alarm.sleep_memory[0] += 1
