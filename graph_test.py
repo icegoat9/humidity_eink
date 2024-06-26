@@ -138,7 +138,7 @@ update_graph(data)
 display_group.append(graph)
 
 # special runtime # in corner
-data_text = displayio.Group(scale=1, x=display.width - 35, y=display.height - 10)
+data_text = displayio.Group(scale=1, x=display.width - 40, y=display.height - 10)
 data_text.append(label.Label(terminalio.FONT, text="27", color=BLACK))
 display_group.append(data_text)
 
