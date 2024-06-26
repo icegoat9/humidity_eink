@@ -51,7 +51,7 @@ display_group.append(background)
 # dummy data for graph
 data = [10, 15, 0, 20, 21, 23, 19, 20, 21, 23, 19, 23, 19, 38, 78, 45, 55, 50, 46, 41]
 
-# layout constants
+# graph layout constants
 graph_y0 = 115
 graph_x0 = 55
 marker_size = 5
