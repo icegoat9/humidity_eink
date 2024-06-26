@@ -1,3 +1,9 @@
+"""
+Read relative humdity from I2C sensor, display on E Ink screen.
+
+Additionally, display graph of RH over time, and deep sleep for long runtime on battery.
+"""
+
 import time
 import board
 import displayio
@@ -29,11 +35,13 @@ rh_data = [0] * 20
 rh_data_index = 0
 run_cycles = 0
 
+
 def save_to_sleep_memory():
     alarm.sleep_memory[0] = run_cycles
     alarm.sleep_memory[1] = rh_data_index
     for i in range(len(rh_data)):
         alarm.sleep_memory[i + 2] = rh_data[i]
+
 
 def load_from_sleep_memory():
     global rh_data
@@ -160,7 +168,25 @@ current_rh_text.append(
 )
 graph.append(current_rh_text)
 
+# Place the display group on the screen
+display_group.append(graph)
+
+# special runtime # in corner
+runtime_text = displayio.Group(scale=1, x=display.width - 40, y=display.height - 10)
+runtime_text.append(label.Label(FONT, text=f"{run_cycles}", color=BLACK))
+display_group.append(runtime_text)
+
+## debug datetime from RTC
+# runtime_text = displayio.Group(scale=1, x=display.width - 40, y=display.height - 10)
+# runtime_text.append(label.Label(FONT, text=f"{run_cycles}", color=BLACK))
+# display_group.append(runtime_text)
+
+# Place the display group on the screen
+display.root_group = display_group
+
+
 ## functions to update graph and current_rh_text with actual data
+
 
 def update_rh_data():
     global rh_data
@@ -169,6 +195,7 @@ def update_rh_data():
     rh_data_index = (rh_data_index + 1) % len(rh_data)
     print(f"humidity = {current_rh}%, saving to slot {rh_data_index} in data buffer")
     rh_data[rh_data_index] = int(current_rh + 0.5)  # round
+
 
 # update graph, pulling data from global rh_data buffer
 def update_graph():
@@ -188,25 +215,10 @@ def update_graph():
         data_group[i].r = r
         data_group[i].fill = c
     current_rh_text[0].text = f"{rh_data[rh_data_index]}"
-    rh_y = graph_y0 - int(rh_data[rh_data_index] * py_per_rh) 
+    rh_y = graph_y0 - int(rh_data[rh_data_index] * py_per_rh)
     rh_y = min(100, max(20, rh_y))
     current_rh_text.y = rh_y
 
-# Place the display group on the screen
-display_group.append(graph)
-
-# special runtime # in corner
-runtime_text = displayio.Group(scale=1, x=display.width - 40, y=display.height - 10)
-runtime_text.append(label.Label(FONT, text=f"{run_cycles}", color=BLACK))
-display_group.append(runtime_text)
-
-# debug datetime from RTC
-runtime_text = displayio.Group(scale=1, x=display.width - 40, y=display.height - 10)
-runtime_text.append(label.Label(FONT, text=f"{run_cycles}", color=BLACK))
-display_group.append(runtime_text)
-
-# Place the display group on the screen
-display.root_group = display_group
 
 while True:
     # update RH and graph with current reading
