@@ -38,6 +38,8 @@ else:
 
 # temporary dummy data
 rh_data = [10, 15, 0, 20, 21, 23, 19, 20, 21, 23, 19, 23, 19, 38, 78, 45, 55, 50, 46, 41]
+# pointer to most recent data reading (0-indexed)
+rh_data_index = 18
 
 ### Display initialization
 
@@ -113,9 +115,7 @@ yticks_group = []
 for i in range(yticks + 1):
     graph.append(Line(graph_x0 - 4, graph_y0 - i * py_tick, graph_x0 + 4, graph_y0 - i * py_tick, color=BLACK))
     if (i % 2) == 1:
-        graph.append(
-            label.Label(x=graph_x0 - 18, y=graph_y0 - i * py_tick, font=FONT, text=str(i * 10), color=BLACK)
-        )
+        graph.append(label.Label(x=graph_x0 - 18, y=graph_y0 - i * py_tick, font=FONT, text=str(i * 10), color=BLACK))
 
 # Set up graph object with dummy data
 data_group = displayio.Group()
@@ -127,7 +127,7 @@ for i in range(len(rh_data)):
 
 graph.append(data_group)
 
-data_text = displayio.Group(scale=3, x=display.width - 67, y=graph_y0 - int(rh_data[-1] * py_per_rh))
+data_text = displayio.Group(scale=3, x=display.width - 70, y=graph_y0 - int(rh_data[-1] * py_per_rh))
 data_text.append(
     label.Label(
         FONT,
@@ -142,14 +142,24 @@ data_text.append(
 )
 graph.append(data_text)
 
-# update graph and data_text with actual data (well, dummy data)
-def update_graph(newdata):
-    """update y values and colors of graph data"""
-    for i in range(len(newdata)):
-        val = min(rh_max, max(newdata[i], 0))
+## update graph and data_text with actual data
+
+
+# read current RH, update global rh_data circular buffer
+def update_rh_data():
+    global rh_data
+    global rh_data_index
+    rh_data_index = (rh_data_index + 1) % len(rh_data)
+    rh_data[rh_data_index] = int(aht_sensor.relative_humidity + 0.5)  # round
+
+# update graph from global rh_data circular buffer
+def update_graph():
+    for i in range(len(rh_data)):
+        i_rel = (i + rh_data_index) % len(rh_data)
+        val = min(rh_max, max(rh_data[i_rel], 0))
         c = BLACK
         r = marker_size
-        if i == len(newdata) - 1:
+        if i == len(rh_data) - 1:
             c = RED
             r = marker_size * 2
         dy = int(val * py_per_rh)
@@ -158,9 +168,11 @@ def update_graph(newdata):
         data_group[i].y0 = graph_y0 - dy
         data_group[i].r = r
         data_group[i].fill = c
-    data_text[0].text = f"{newdata[-1]}"
+    data_text[0].text = f"{rh_data[rh_data_index]}"
 
-update_graph(rh_data)
+
+update_rh_data()
+update_graph()
 
 # Place the display group on the screen
 display_group.append(graph)
@@ -172,11 +184,6 @@ display_group.append(data_text)
 
 display.root_group = display_group
 
-def get_humidity_string():
-    h = f"RH {aht_sensor.relative_humidity:.0f}%"
-    print(h)  # to serial terminal, for debugging
-    return h
-
 
 # Place the display group on the screen
 display.root_group = display_group
@@ -187,11 +194,10 @@ while True:
     # do not refresh this e ink display faster than 180 seconds
     time_alarm = alarm.time.TimeAlarm(monotonic_time=time.monotonic() + 180)
     # wake and update screen hourly?
-    #time_alarm = alarm.time.TimeAlarm(monotonic_time=time.monotonic() + 3600)
-    last_RH = int(aht_sensor.relative_humidity)
-    print(f"saving last RH reading {last_RH} to low-power sleep memory")
+    # time_alarm = alarm.time.TimeAlarm(monotonic_time=time.monotonic() + 3600)
+    update_rh_data()
+    update_graph()
     run_cycles += 1
-    alarm.sleep_memory[1] = last_RH
     print("entering deep sleep now...")
     alarm.exit_and_deep_sleep_until_alarms(time_alarm)
     print("deep sleep failed, reached unexpected location in code...")
