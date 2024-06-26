@@ -1,5 +1,6 @@
-# adapted from examples/display_shapes_sparkline_ticks.py in CircuitPython bundle
-# original file credits are:
+# adapted from examples/display_shapes_sparkline_ticks.py in the CircuitPython bundle
+
+# the original file's credits are:
 ## SPDX-FileCopyrightText: 2021 ladyada for Adafruit Industries
 ## SPDX-License-Identifier: MIT
 ## created by Kevin Matocha - Copyright 2020 (C)

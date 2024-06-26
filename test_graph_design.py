@@ -9,7 +9,7 @@ import adafruit_display_shapes
 from adafruit_display_shapes.line import Line
 from adafruit_display_shapes.circle import Circle
 
-print("running graph_test.py...")
+print("running test_graph_design.py")
 
 # Used to ensure the display is free in CircuitPython
 displayio.release_displays()

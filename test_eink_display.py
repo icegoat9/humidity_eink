@@ -15,7 +15,7 @@ def runtime_hours() -> str:
   h = (time.monotonic() - t0_powerup) / 3600
   return f"{h:.1f}"
 
-print('running eink_test.py...')
+print('running test_eink_display.py...')
 print(f'runtime (hours): {runtime_hours()}')
 
 # Used to ensure the display is free in CircuitPython
