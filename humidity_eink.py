@@ -25,21 +25,36 @@ FONT = terminalio.FONT
 # Initialize I2C connection to humidity sensor
 aht_sensor = adafruit_ahtx0.AHTx0(board.I2C())
 
+# initialize a fixed-length RH buffer
+rh_data = [0] * 20
+
+
+def save_to_sleep_memory():
+    alarm.sleep_memory[0] = run_cycles
+    alarm.sleep_memory[1] = rh_data_index
+    for i in range(len(rh_data)):
+        alarm.sleep_memory[i + 2] = rh_data[i]
+
+
+def load_from_sleep_memory():
+    run_cycles = alarm.sleep_memory[0]
+    rh_data_index = alarm.sleep_memory[1]
+    for i in range(len(rh_data)):
+        rh_data[i] = alarm.sleep_memory[i + 2]
+
+
 # Initialize data depending on bootup vs. waking from deep sleep
 if not alarm.wake_alarm:
-    print("first boot, initializing 'sleep memory'")
+    print("first boot, initializing variables")
     run_cycles = 0
-    alarm.sleep_memory[0] = 0  # number of sleep/wake cycles since boot
-    alarm.sleep_memory[1] = 0  # last RH value
-#    prev_data = [0] * 20
-#    prev_data_index = 0
+    # rh_data = [0] * 20
+    rh_data_index = 0
+    # DEBUG: swap in temporary dummy data
+    rh_data = [10, 15, 0, 20, 21, 23, 19, 20, 21, 23, 19, 23, 19, 38, 78, 45, 55, 50, 46, 41]
+    rh_data_index = 18
 else:
-    print("waking after deep sleep...")
-
-# temporary dummy data
-rh_data = [10, 15, 0, 20, 21, 23, 19, 20, 21, 23, 19, 23, 19, 38, 78, 45, 55, 50, 46, 41]
-# pointer to most recent data reading (0-indexed)
-rh_data_index = 18
+    print("waking after deep sleep, loading variables from sleep memory")
+    load_from_sleep_memory()
 
 ### Display initialization
 
@@ -127,8 +142,8 @@ for i in range(len(rh_data)):
 
 graph.append(data_group)
 
-data_text = displayio.Group(scale=3, x=display.width - 70, y=graph_y0 - int(rh_data[-1] * py_per_rh))
-data_text.append(
+current_rh_text = displayio.Group(scale=3, x=display.width - 70, y=graph_y0 - int(rh_data[-1] * py_per_rh))
+current_rh_text.append(
     label.Label(
         FONT,
         text="00",
@@ -140,19 +155,22 @@ data_text.append(
         padding_bottom=1,
     )
 )
-graph.append(data_text)
+graph.append(current_rh_text)
 
-## update graph and data_text with actual data
+## update graph and current_rh_text with actual data
 
 
 # read current RH, update global rh_data circular buffer
 def update_rh_data():
     global rh_data
     global rh_data_index
+    current_rh = aht_sensor.relative_humidity
+    print(f"humidity = {current_rh}%, saving to data buffer")
     rh_data_index = (rh_data_index + 1) % len(rh_data)
-    rh_data[rh_data_index] = int(aht_sensor.relative_humidity + 0.5)  # round
+    rh_data[rh_data_index] = int(current_rh + 0.5)  # round
 
-# update graph from global rh_data circular buffer
+
+# update graph using data in global rh_data circular buffer
 def update_graph():
     for i in range(len(rh_data)):
         i_rel = (i + rh_data_index) % len(rh_data)
@@ -168,7 +186,7 @@ def update_graph():
         data_group[i].y0 = graph_y0 - dy
         data_group[i].r = r
         data_group[i].fill = c
-    data_text[0].text = f"{rh_data[rh_data_index]}"
+    current_rh_text[0].text = f"{rh_data[rh_data_index]}"
 
 
 update_rh_data()
@@ -178,12 +196,9 @@ update_graph()
 display_group.append(graph)
 
 # special runtime # in corner
-data_text = displayio.Group(scale=1, x=display.width - 40, y=display.height - 10)
-data_text.append(label.Label(FONT, text=f"{run_cycles}", color=BLACK))
-display_group.append(data_text)
-
-display.root_group = display_group
-
+runtime_text = displayio.Group(scale=1, x=display.width - 40, y=display.height - 10)
+runtime_text.append(label.Label(FONT, text=f"{run_cycles}", color=BLACK))
+display_group.append(runtime_text)
 
 # Place the display group on the screen
 display.root_group = display_group
@@ -198,6 +213,7 @@ while True:
     update_rh_data()
     update_graph()
     run_cycles += 1
-    print("entering deep sleep now...")
+    print("entering deep sleep now, saving critical data to sleep memory...")
+    save_to_sleep_memory()
     alarm.exit_and_deep_sleep_until_alarms(time_alarm)
     print("deep sleep failed, reached unexpected location in code...")
