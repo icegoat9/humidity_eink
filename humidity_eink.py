@@ -172,8 +172,8 @@ graph.append(current_rh_text)
 display_group.append(graph)
 
 # special runtime # in corner
-runtime_text = displayio.Group(scale=1, x=display.width - 40, y=display.height - 10)
-runtime_text.append(label.Label(FONT, text=f"{run_cycles}", color=BLACK))
+runtime_text = displayio.Group(scale=1, x=display.width - 70, y=display.height - 10)
+runtime_text.append(label.Label(FONT, text=f"hour {run_cycles}", color=BLACK))
 display_group.append(runtime_text)
 
 ## debug datetime from RTC
@@ -228,11 +228,10 @@ while True:
     # actually display to E Ink screen
     display.refresh()
     ## deep sleep until next update period
-    # NOTE: do not refresh this e ink display faster than 180 seconds
-    time_alarm = alarm.time.TimeAlarm(monotonic_time=time.monotonic() + 180)
-    # wake and update screen hourly
-    # time_alarm = alarm.time.TimeAlarm(monotonic_time=time.monotonic() + 3600)
-    print("entering deep sleep now, saving critical data to sleep memory...")
+    #SLEEP_MINUTES = 3 # do not refresh this e ink display faster than 180 seconds
+    SLEEP_MINUTES = 60
+    time_alarm = alarm.time.TimeAlarm(monotonic_time=time.monotonic() + 60 * SLEEP_MINUTES)
+    print(f"entering deep sleep for {SLEEP_MINUTES} minutes, saving critical data to sleep memory...")
     save_to_sleep_memory()
     alarm.exit_and_deep_sleep_until_alarms(time_alarm)
     print("ERROR: deep sleep failed, reached unexpected location in code...")
