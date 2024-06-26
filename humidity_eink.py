@@ -11,8 +11,6 @@ import adafruit_ahtx0
 import alarm
 import rtc
 
-print("running humidity_eink.py...")
-
 # initialize real-time clock (TBD if it works on this board)
 rtc_object = rtc.RTC()
 
@@ -25,9 +23,11 @@ FONT = terminalio.FONT
 # Initialize I2C connection to humidity sensor
 aht_sensor = adafruit_ahtx0.AHTx0(board.I2C())
 
-# initialize a fixed-length RH buffer
+# initialize a fixed-length RH buffer and related variables
+# note: these variables may be overwritten below from Sleep Memory if we are resuming after a deep sleep
 rh_data = [0] * 20
-
+rh_data_index = 0
+run_cycles = 0
 
 def save_to_sleep_memory():
     alarm.sleep_memory[0] = run_cycles
@@ -35,8 +35,10 @@ def save_to_sleep_memory():
     for i in range(len(rh_data)):
         alarm.sleep_memory[i + 2] = rh_data[i]
 
-
 def load_from_sleep_memory():
+    global rh_data
+    global rh_data_index
+    global run_cycles
     run_cycles = alarm.sleep_memory[0]
     rh_data_index = alarm.sleep_memory[1]
     for i in range(len(rh_data)):
@@ -45,6 +47,7 @@ def load_from_sleep_memory():
 
 # Initialize data depending on bootup vs. waking from deep sleep
 if not alarm.wake_alarm:
+    print("**********************************")
     print("first boot, initializing variables")
     run_cycles = 0
     # rh_data = [0] * 20
@@ -142,7 +145,7 @@ for i in range(len(rh_data)):
 
 graph.append(data_group)
 
-current_rh_text = displayio.Group(scale=3, x=display.width - 70, y=graph_y0 - int(rh_data[-1] * py_per_rh))
+current_rh_text = displayio.Group(scale=3, x=display.width - 70, y=graph_y0)
 current_rh_text.append(
     label.Label(
         FONT,
@@ -157,23 +160,21 @@ current_rh_text.append(
 )
 graph.append(current_rh_text)
 
-## update graph and current_rh_text with actual data
+## functions to update graph and current_rh_text with actual data
 
-
-# read current RH, update global rh_data circular buffer
 def update_rh_data():
     global rh_data
     global rh_data_index
     current_rh = aht_sensor.relative_humidity
-    print(f"humidity = {current_rh}%, saving to data buffer")
     rh_data_index = (rh_data_index + 1) % len(rh_data)
+    print(f"humidity = {current_rh}%, saving to slot {rh_data_index} in data buffer")
     rh_data[rh_data_index] = int(current_rh + 0.5)  # round
 
-
-# update graph using data in global rh_data circular buffer
+# update graph, pulling data from global rh_data buffer
 def update_graph():
     for i in range(len(rh_data)):
-        i_rel = (i + rh_data_index) % len(rh_data)
+        # start by pulling data from oldest location (i.e. one beyond current data index in circular buffer)
+        i_rel = (i + rh_data_index + 1) % len(rh_data)
         val = min(rh_max, max(rh_data[i_rel], 0))
         c = BLACK
         r = marker_size
@@ -187,10 +188,9 @@ def update_graph():
         data_group[i].r = r
         data_group[i].fill = c
     current_rh_text[0].text = f"{rh_data[rh_data_index]}"
-
-
-update_rh_data()
-update_graph()
+    rh_y = graph_y0 - int(rh_data[rh_data_index] * py_per_rh) 
+    rh_y = min(100, max(20, rh_y))
+    current_rh_text.y = rh_y
 
 # Place the display group on the screen
 display_group.append(graph)
@@ -200,20 +200,27 @@ runtime_text = displayio.Group(scale=1, x=display.width - 40, y=display.height -
 runtime_text.append(label.Label(FONT, text=f"{run_cycles}", color=BLACK))
 display_group.append(runtime_text)
 
+# debug datetime from RTC
+runtime_text = displayio.Group(scale=1, x=display.width - 40, y=display.height - 10)
+runtime_text.append(label.Label(FONT, text=f"{run_cycles}", color=BLACK))
+display_group.append(runtime_text)
+
 # Place the display group on the screen
 display.root_group = display_group
 
 while True:
-    display.refresh()
-    # deep sleep until next update...
-    # do not refresh this e ink display faster than 180 seconds
-    time_alarm = alarm.time.TimeAlarm(monotonic_time=time.monotonic() + 180)
-    # wake and update screen hourly?
-    # time_alarm = alarm.time.TimeAlarm(monotonic_time=time.monotonic() + 3600)
+    # update RH and graph with current reading
     update_rh_data()
     update_graph()
     run_cycles += 1
+    # actually display to E Ink screen
+    display.refresh()
+    ## deep sleep until next update period
+    # NOTE: do not refresh this e ink display faster than 180 seconds
+    time_alarm = alarm.time.TimeAlarm(monotonic_time=time.monotonic() + 180)
+    # wake and update screen hourly
+    # time_alarm = alarm.time.TimeAlarm(monotonic_time=time.monotonic() + 3600)
     print("entering deep sleep now, saving critical data to sleep memory...")
     save_to_sleep_memory()
     alarm.exit_and_deep_sleep_until_alarms(time_alarm)
-    print("deep sleep failed, reached unexpected location in code...")
+    print("ERROR: deep sleep failed, reached unexpected location in code...")
