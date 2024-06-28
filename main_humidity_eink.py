@@ -13,10 +13,28 @@ import terminalio
 from adafruit_display_text import label
 from adafruit_display_shapes.line import Line
 from adafruit_display_shapes.circle import Circle
-
-# import adafruit_ahtx0
+# import adafruit_ahtx0   # previously, lower-accuracy humidity sensor
 import adafruit_sht4x
 import alarm
+import digitalio
+
+# Featherwing pushbutton pin assignment (currently unused)
+# note: may vary by Feather but below is true for Feather M4 Express
+pin_button_C = board.D13
+pin_button_B = board.D12
+pin_button_A = board.D11
+#input_D12 = digitalio.DigitalInOut(board.D12)
+#input_D12.direction = digitalio.Direction.INPUT
+
+pin_alarm = alarm.pin.PinAlarm(pin=pin_button_B, value=False, pull=True)
+print(f"entering deep sleep until button B pressed...")
+alarm.exit_and_deep_sleep_until_alarms(pin_alarm)
+
+
+# digital input for 'wake' pushbutton (commented out to initialize as alarm below)
+#input_buttonC = digitalio.DigitalInOut(board.D13)
+#input_buttonC.direction = digitalio.Direction.INPUT
+#input_buttonC.pull = digitalio.Pull.UP
 
 # WIP (TBD if RTC works on this board): initialize real-time clock
 #import rtc
@@ -68,6 +86,7 @@ if not alarm.wake_alarm:
 else:
     print("waking after deep sleep, loading variables from sleep memory")
     load_from_sleep_memory()
+
 
 ### Display initialization
 
@@ -212,14 +231,19 @@ while True:
     # update RH and graph with current reading
     update_rh_data()
     update_graph()
-    run_cycles += 1
+    if not isinstance(alarm.wake_alarm, alarm.pin.PinAlarm):
+        # on normal timer-based wake, increment the "# of run cycles elapsed" counter
+        run_cycles += 1 
+    else:
+        print("wake was triggered manually by pin, not incrementing hour counter...")
     # actually display to E Ink screen
     display.refresh()
     ## deep sleep until next update period
     SLEEP_MINUTES = 3 # do not refresh this e ink display faster than 180 seconds
     #SLEEP_MINUTES = 60
     time_alarm = alarm.time.TimeAlarm(monotonic_time=time.monotonic() + 60 * SLEEP_MINUTES)
+    pin_alarm = alarm.pin.PinAlarm(pin=pin_button_C, value=False, pull=True)
     print(f"entering deep sleep for {SLEEP_MINUTES} minutes, saving critical data to sleep memory...")
     save_to_sleep_memory()
-    alarm.exit_and_deep_sleep_until_alarms(time_alarm)
+    alarm.exit_and_deep_sleep_until_alarms(time_alarm, pin_alarm)
     print("ERROR: deep sleep failed, reached unexpected location in code...")
