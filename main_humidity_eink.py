@@ -23,22 +23,6 @@ import digitalio
 pin_button_C = board.D13
 pin_button_B = board.D12
 pin_button_A = board.D11
-#input_D12 = digitalio.DigitalInOut(board.D12)
-#input_D12.direction = digitalio.Direction.INPUT
-
-pin_alarm = alarm.pin.PinAlarm(pin=pin_button_B, value=False, pull=True)
-print(f"entering deep sleep until button B pressed...")
-alarm.exit_and_deep_sleep_until_alarms(pin_alarm)
-
-
-# digital input for 'wake' pushbutton (commented out to initialize as alarm below)
-#input_buttonC = digitalio.DigitalInOut(board.D13)
-#input_buttonC.direction = digitalio.Direction.INPUT
-#input_buttonC.pull = digitalio.Pull.UP
-
-# WIP (TBD if RTC works on this board): initialize real-time clock
-#import rtc
-#rtc_object = rtc.RTC()
 
 # color and font constants
 BLACK = 0x000000
@@ -231,19 +215,15 @@ while True:
     # update RH and graph with current reading
     update_rh_data()
     update_graph()
-    if not isinstance(alarm.wake_alarm, alarm.pin.PinAlarm):
-        # on normal timer-based wake, increment the "# of run cycles elapsed" counter
-        run_cycles += 1 
-    else:
-        print("wake was triggered manually by pin, not incrementing hour counter...")
-    # actually display to E Ink screen
+    run_cycles += 1 
+    # actually update E Ink screen
     display.refresh()
     ## deep sleep until next update period
-    SLEEP_MINUTES = 3 # do not refresh this e ink display faster than 180 seconds
-    #SLEEP_MINUTES = 60
+    #  NOTE: do not refresh this tricolor E Ink display faster than 180 seconds
+    #SLEEP_MINUTES = 3 # Faster refresh for debugging...
+    SLEEP_MINUTES = 60
     time_alarm = alarm.time.TimeAlarm(monotonic_time=time.monotonic() + 60 * SLEEP_MINUTES)
-    pin_alarm = alarm.pin.PinAlarm(pin=pin_button_C, value=False, pull=True)
     print(f"entering deep sleep for {SLEEP_MINUTES} minutes, saving critical data to sleep memory...")
     save_to_sleep_memory()
-    alarm.exit_and_deep_sleep_until_alarms(time_alarm, pin_alarm)
+    alarm.exit_and_deep_sleep_until_alarms(time_alarm)
     print("ERROR: deep sleep failed, reached unexpected location in code...")
