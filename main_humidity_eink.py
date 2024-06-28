@@ -13,12 +13,14 @@ import terminalio
 from adafruit_display_text import label
 from adafruit_display_shapes.line import Line
 from adafruit_display_shapes.circle import Circle
-import adafruit_ahtx0
-import alarm
-import rtc
 
-# initialize real-time clock (TBD if it works on this board)
-rtc_object = rtc.RTC()
+# import adafruit_ahtx0
+import adafruit_sht4x
+import alarm
+
+# WIP (TBD if RTC works on this board): initialize real-time clock
+#import rtc
+#rtc_object = rtc.RTC()
 
 # color and font constants
 BLACK = 0x000000
@@ -27,7 +29,7 @@ RED = 0xFF0000
 FONT = terminalio.FONT
 
 # Initialize I2C connection to humidity sensor
-aht_sensor = adafruit_ahtx0.AHTx0(board.I2C())
+rh_sensor = adafruit_sht4x.SHT4x(board.I2C())
 
 # initialize a fixed-length RH buffer and related variables
 # note: these variables may be overwritten below from Sleep Memory if we are resuming after a deep sleep
@@ -104,12 +106,6 @@ background_palette[0] = WHITE
 background = displayio.TileGrid(canvas, pixel_shader=background_palette, x=0, y=0)
 display_group.append(background)
 
-# def append_data(n):
-#    prev_data[prev_data_index] = n
-#    prev_data_index += 1
-#    if prev_data_index >= len(prev_data):
-#        prev_data_index = 0
-
 # chart layout constants
 graph_y0 = 115
 graph_x0 = 55
@@ -176,22 +172,14 @@ runtime_text = displayio.Group(scale=1, x=display.width - 70, y=display.height -
 runtime_text.append(label.Label(FONT, text=f"hour {run_cycles}", color=BLACK))
 display_group.append(runtime_text)
 
-## debug datetime from RTC
-# runtime_text = displayio.Group(scale=1, x=display.width - 40, y=display.height - 10)
-# runtime_text.append(label.Label(FONT, text=f"{run_cycles}", color=BLACK))
-# display_group.append(runtime_text)
-
 # Place the display group on the screen
 display.root_group = display_group
 
-
 ## functions to update graph and current_rh_text with actual data
-
-
 def update_rh_data():
     global rh_data
     global rh_data_index
-    current_rh = aht_sensor.relative_humidity
+    current_rh = rh_sensor.relative_humidity
     rh_data_index = (rh_data_index + 1) % len(rh_data)
     print(f"humidity = {current_rh}%, saving to slot {rh_data_index} in data buffer")
     rh_data[rh_data_index] = int(current_rh + 0.5)  # round
@@ -228,8 +216,8 @@ while True:
     # actually display to E Ink screen
     display.refresh()
     ## deep sleep until next update period
-    #SLEEP_MINUTES = 3 # do not refresh this e ink display faster than 180 seconds
-    SLEEP_MINUTES = 60
+    SLEEP_MINUTES = 3 # do not refresh this e ink display faster than 180 seconds
+    #SLEEP_MINUTES = 60
     time_alarm = alarm.time.TimeAlarm(monotonic_time=time.monotonic() + 60 * SLEEP_MINUTES)
     print(f"entering deep sleep for {SLEEP_MINUTES} minutes, saving critical data to sleep memory...")
     save_to_sleep_memory()
