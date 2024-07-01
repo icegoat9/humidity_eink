@@ -1,6 +1,6 @@
 import main_humidity_eink
-#import extest_led
-#import adafruit_il0373_demo
-#import test_eink_display
-#import test_sparkline
-#import test_graph_design
+#import experiments.test_led
+#import experiments.adafruit_il0373_demo
+#import experiments.test_eink_display
+#import experiments.test_sparkline
+#import experiments.test_graph_design
