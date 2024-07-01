@@ -45,15 +45,7 @@ Next, I load and run some sample code from [Adafruit's excellent documentation](
 
 ![](docs/humidity6_testimage.JPG)
 
-
-
-**Side note:** I used CircuitPython (as opposed to something lower-level) for four main reasons:
-* I know it well and find it fast to develop in.
-* Nothing in this project involves critical timing or speed (e.g. no real-time control loop).
-* The Python shell / REPL lets me quickly experiment with modules and communications (see below).
-* I'll write abstracted code that happens to run on this particular Feather embedded board, but which I could port to a different processor (such as an ESP32-based Feather which is what I've used for more recent projects-- I just didn't have a spare one on hand today).
-
-I brushed up on the [`displayio`](https://docs.circuitpython.org/en/latest/shared-bindings/displayio/) library which I've used in the past to composite images onto a display and wrote a few lines of code. Oops, I forgot that (x,y) coordinates in displayio anchor by default to the vertical center of text:
+I brushed up on the [`displayio`](https://docs.circuitpython.org/en/latest/shared-bindings/displayio/) library which I've used in the past to composite elements into an image and wrote a few lines of code. Oops, I forgot that (x,y) coordinates in displayio anchor by default to the vertical center of text:
 ![](docs/humidity7_displayio_text.JPG)
 
 Fixed:
@@ -113,11 +105,16 @@ I tested the CircuitPython [`display_shapes`](https://docs.circuitpython.org/pro
 
 ![](docs/humidity14_sparkline.JPG)
 
-I decided to make my own graph_drawing routine, using the line and circle primitives from `display_shapes`. To iterate quickly on ideas, I wrote some throwaway code using some hard-coded dummy data that just draws a set graph to the screen. After playing around with some math and settings for a while, I came up with this layout, which I liked:
+I decided to make my own chart drawing routine, using the line and circle primitives from `display_shapes`. To iterate quickly on ideas, I wrote some throwaway code using some hard-coded dummy data that just draws a set graph to the screen. After playing around with some math and settings for a while, I came up with this layout, which I liked:
 
 ![](docs/humidity17_graph.JPG)
 
-This was just a mockup, so I spent another hour or two cleaning up the code and building this functionality in my main program. In particular, I set up a circular buffer for past humidity data, and functions to load and save data from [backup RAM / sleep memory](https://learn.adafruit.com/deep-sleep-with-circuitpython/sleep-memory)-- otherwise every time the system went into deep sleep all variables would be re-initialized. After a few tests this seemed to work as intended.
+This was just a mockup, so I spent another hour or two cleaning up the code and building this functionality in my main program. From memory, this mostly involved:
+* Setting up a circular buffer for humidity data.
+* Functions to load and save data from [backup RAM / sleep memory](https://learn.adafruit.com/deep-sleep-with-circuitpython/sleep-memory)-- otherwise every time the system went into deep sleep all variables would be re-initialized. 
+* Rather that re-creating the entire displayio image every time we have new data, just updating the y position of the existing data dots.
+
+After a few tests this seemed to work as intended.
 
 Continuing my shuffle between hardware and software, I then did one more iteration on case design, with a top sheet that frames the display more nicely:
 
@@ -176,19 +173,19 @@ Now it's tucked away in the box of filament, logging data.
 
 ### Time Invested
 
-By looking back at the date / time on photos and screenshots I took along the way, it looks like I spent about 12 hours on this project spread over three days.
+By looking back at some notes and the timestamps on photos and screenshots I took along the way, it looks like I spent about 12 hours on this project spread over three days.
 
 ## Future Ideas
 
 I'm calling this done for now to catch up on other work, but I have a few ideas for future extensions:
 
-* Shift this to be more of a humidity logger than just a humidity display:
-  * Instead of just buffering the last 24 hours of readings in backup RAM, buffer weeks or months of readings, and change the graph to a box plot (one box per day for the past month)
+* Instead of just buffering the last 24 hours of readings in backup RAM, buffer weeks or months of readings, and change the graph to a box plot (one box per day for the past month)
   * Log humidity to our tiny 2MB flash memory for storage even after a reset or the battery runs down
-* Measure actual power draw in various states and estimate battery life-- if needed, look into other power reduction methods (I haven't used sleep modes on this particular processor before and haven't looked under the hood into what the Python abstractions are actually doing vs. the processor's datasheet)
+* Dig into why the internal RTC resets-- maybe add an external I2C RTC with a tiny coin cell battery backup
+* Measure actual power draw in various states and estimate battery life-- if needed, look into other power reduction methods (I haven't used sleep modes on this particular processor before and haven't looked under the hood into what the Python abstractions actually do in light vs. deep sleep modes relative to the processor low-level features)
 * Integrate the buttons on the top of the case to provide some new functionality such as:
   * Switch between multiple display formats (large humidity number, graph, humidity and temperature, and so on)
-  * Wake the sensor from sleep and take an immediate reading (likely not possible on the SAMD51 because these particular pins don't appear to have external hardware interrupts, but possible if I rewired it or switched to an ESP32 Feather)
+  * Wake the sensor from sleep and take an immediate reading (likely not possible on this system as built because these particular pins don't appear to have external hardware interrupts, but possible if I rewired it or switched to an ESP32 Feather)
 * Revise the case design to remove the visible seam on the faceplate
 * Swap in a WiFi-enabled embedded board, log data to the cloud (but I expect this would dramatically cut battery life)
 
