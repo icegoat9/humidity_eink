@@ -176,9 +176,9 @@ Now it's tucked away in the box of filament, logging data.
 
 ### Time Invested
 
-I didn't keep careful track of time, but just by looking at the date / time on photos I took and the save times on files, it looks like I spent about 12 hours on this project spread over three days.
+By looking back at the date / time on photos and screenshots I took along the way, it looks like I spent about 12 hours on this project spread over three days.
 
-### Future Ideas
+## Future Ideas
 
 I'm calling this done for now to catch up on other work, but I have a few ideas for future extensions:
 
