@@ -95,7 +95,7 @@ I went through a few more iterations of case design, fixing fit issues and addin
 
 ![](docs/humidity15_3dprinting.JPG)
 
-A robust design might heat-set threaded metal inserts into the case for strong screw connections, or design in some plastic snap tabs, but for this kind of quick project I find I can tap threads directly into the 3D printed plastic if I'm careful and only going to use them a few times (in the 3D printer slicer I need to remember to set infill density to 100% in those areas or for the whole part, so there's material to bit into not just a thin wall):
+A robust design might heat-set threaded metal inserts into the case for strong screw connections, or design in some plastic snap tabs, but for this kind of quick project I find I can usually tap threads directly into the 3D printed plastic if I'm careful and only going to open and close it a few times ever (in the 3D printer slicer I need to remember to set infill density to 100% in those areas or for the whole part, so there's material to bite into, not just a thin wall):
 
 ![](docs/humidity16_tapping.JPG)
 
