@@ -16,7 +16,7 @@ I plan to store my extra printer filament in a dry box with desiccant, and wante
 
 I had other projects to work on, so I told myself "If I can build a working prototype in one evening with parts I have around, I'll let myself spend a few more days polishing it."
 
-I rarely document one-off projects like this, but I thought it would be useful/fun for when I look back at it in the future, so I took photos and screenshots along the way to let me reconstruct the process and how long I spent on each step after the fact.
+I rarely document one-off projects like this, but I thought it would be useful/fun for when I look back at it in the future, so I took photos and screenshots along the way to let me reconstruct the process after the fact.
 
 ## Development Log
 
@@ -38,10 +38,9 @@ I connected the Feather to my laptop to update the firmware and start programmin
 ![](docs/humidity5_badcable.JPG)
 
 Now I was able to load CircuitPython onto the device. I always start with some basic 'blink an LED' code to check my workflow:
-
 ![](docs/screenshot_testcode.png)
 
-Next, I load and run some sample code from [Adafruit's excellent documentation](https://learn.adafruit.com/adafruit-2-9-eink-display-breakouts-and-featherwings/overview), verifying I could display an image to the E Ink display.
+Next, I loaded some sample code from [Adafruit's excellent-as-always documentation](https://learn.adafruit.com/adafruit-2-9-eink-display-breakouts-and-featherwings/overview), verifying I could display an image on the E Ink`.
 
 ![](docs/humidity6_testimage.JPG)
 
