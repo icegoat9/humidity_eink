@@ -182,6 +182,7 @@ I'm calling this done for now to catch up on other work, but I have a few ideas 
   * Log humidity to our tiny 2MB flash memory for storage even after a reset or the battery runs down
 * Dig into why the internal RTC resets-- maybe add an external I2C RTC with a tiny coin cell battery backup
 * Measure actual power draw in various states and estimate battery life-- if needed, look into other power reduction methods (I haven't used sleep modes on this particular processor before and haven't looked under the hood into what the Python abstractions actually do in light vs. deep sleep modes relative to the processor low-level features)
+  * Update: this first prototype seems to run for about three weeks / 450 screen refreshes between charges, which is less than expected (I've build some similar-scale battery-powered systems using different processes that run 3-6 months between charges), so I need to dig into the details of the deep sleep mode as well as any peripherals with background power draw 
 * Integrate the buttons on the top of the case to provide some new functionality such as:
   * Switch between multiple display formats (large humidity number, graph, humidity and temperature, and so on)
   * Wake the sensor from sleep and take an immediate reading (likely not possible on this system as built because these particular pins don't appear to have external hardware interrupts, but possible if I rewired it or switched to an ESP32 Feather)
