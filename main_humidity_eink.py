@@ -43,7 +43,7 @@ run_cycles = 0
 def save_to_sleep_memory():
     alarm.sleep_memory[0] = rh_data_index
     # sleep memory can only hold bytes-- the below will allow counting 2^16 run_cycles rather than 2^8
-    # (and then will wrap around, though the battery shouldn't last even close to 2^16 cycles)
+    # (and then will wrap around, though the battery won't last even close to 2^16 cycles)
     alarm.sleep_memory[1] = (run_cycles // 256) % 256
     alarm.sleep_memory[2] = run_cycles % 256
     for i in range(len(rh_data)):
