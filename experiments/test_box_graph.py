@@ -98,75 +98,35 @@ data_group = displayio.Group()
 graph.append(data_group)
 data_group_index = graph.index(data_group)
 
+def scale_and_clip(rh):
+    """Convert RH data into pixel Y position, with some clipping safety checks."""
+    d = min(rh_max, max(rh, 0))
+    dy = int(d * py_per_rh)
+    if dy == 0:
+        dy = -100  # offset zero (invalid?) data off the screen
+    return dy
+
 def overwrite_graph(updatedata):
-    """create data group object for data"""
+    """create graph data object, and replace existing display.io Group"""
     data_group = displayio.Group()
     num_boxes = (len(updatedata) - 1) // data_per_box + 1
     for b in range(num_boxes):
         # extract subset of data for this box
         boxdata = updatedata[data_per_box * b: data_per_box * (b+1)]
-        # TODO: de-duplicate similar code below-- this is experimental
-        # calculate (clipped-to-visible) versions of box parameters
-        d0 = min(rh_max, max(min(boxdata), 0))
-        df = min(rh_max, max(max(boxdata), 0))
-        dm = min(rh_max, max(mean(boxdata), 0))
-        d0y = int(d0 * py_per_rh)
-        dfy = int(df * py_per_rh)
-        dmy = int(dm * py_per_rh)
-        if d0y == 0:
-            d0y = -100  # offset zero (invalid?) data off the screen
-        if dfy == 0:
-            dfy = -100  # offset zero (invalid?) data off the screen
-        if dmy == 0:
-            dmy = -100  # offset zero (invalid?) data off the screen
-        print(f"({d0},{dm},{df}) -> py({d0y},{dmy},{dfy})")
+        # TODO: de-duplicate similar code below-- this is a quick prototype
+        # calculate (clipped-to-visible) versions of grouped data parameters
+        dmin_y = scale_and_clip(min(boxdata))
+        dmax_y = scale_and_clip(max(boxdata))
+        davg_y = scale_and_clip(mean(boxdata))
         x = graph_x0 + 5 + (b + 1) * px_tick
-        data_group.append(Line(x0 = x, y0 = graph_y0 - d0y, x1 = x, y1 = graph_y0  - dfy, color=BLACK))
-        data_group.append(Circle(x, graph_y0 - dmy, r = marker_size, fill=BLACK, outline=None))
+        data_group.append(Line(x0 = x, y0 = graph_y0 - dmin_y, x1 = x, y1 = graph_y0  - dmax_y, color=BLACK))
+        data_group.append(Circle(x, graph_y0 - davg_y, r = marker_size, fill=BLACK, outline=None))
     # add most recent data
-    dr = min(rh_max, max(updatedata[-1], 0))
-    dry = int(dr * py_per_rh)
-    if dry == 0:
-        dry = -100  # offset zero (invalid?) data off the screen
-    data_group.append(Circle(x, graph_y0 - dry, r = highlight_marker_size, fill=RED, outline=None))
+    drecent_y = scale_and_clip(updatedata[-1])
+    data_group.append(Circle(x, graph_y0 - drecent_y, r = highlight_marker_size, fill=RED, outline=None))
     # replace past data
     graph.pop(data_group_index)
     graph.insert(data_group_index, data_group)
-    data_text[0].text = f"{updatedata[-1]}"
-
-def update_graph(updatedata):
-    """update y values and colors of graph data"""
-    num_boxes = (len(updatedata) - 1) // data_per_box + 1
-    for b in range(num_boxes):
-        # extract subset of data for this box
-        boxdata = updatedata[data_per_box * b: data_per_box * (b+1)]
-        # TODO: de-duplicate similar code below-- this is experimental
-        # calculate (clipped-to-visible) versions of box parameters
-        d0 = min(rh_max, max(min(boxdata), 0))
-        df = min(rh_max, max(max(boxdata), 0))
-        dm = min(rh_max, max(mean(boxdata), 0))
-        r = marker_size
-        c = BLACK
-        if i == num_boxes - 1:
-            r = highlight_marker_size
-            c = RED
-        d0y = int(d0 * py_per_rh)
-        dfy = int(df * py_per_rh)
-        dmy = int(dm * py_per_rh)
-        if d0y == 0:
-            d0y = -100  # offset zero (invalid?) data off the screen
-        if dfy == 0:
-            dfy = -100  # offset zero (invalid?) data off the screen
-        if dmy == 0:
-            dmy = -100  # offset zero (invalid?) data off the screen
-        print(f"({d0},{dm},{df}) -> py({d0y},{dmy},{dfy})")
-        # data_group[2*b] is the line, [2*b+1] is the round marker
-        data_group[2 * b].y0 = graph_y0 - d0y
-        data_group[2 * b].y1 = graph_y0 - dfy
-        data_group[2 * b + 1].y0 = graph_y0 - dmy
-        data_group[2 * b + 1].r = r
-        data_group[2 * b + 1].c = c
-        print("line yf should be: ", graph_y0 - data_group[2 * b].y1)
     data_text[0].text = f"{updatedata[-1]}"
 
 data_text = displayio.Group(scale=3, x=display.width - 67, y=graph_y0 - int(data[-1] * py_per_rh))
@@ -202,6 +162,6 @@ while True:
     # dummy data for graph
     time.sleep(180)
     newdata = [20, 21, 23, 19, 20, 21, 23, 19, 23, 19, 38, 78, 45, 55, 50, 46, 41, 35, 27, 17]
-    update_graph(newdata)
+    overwrite_graph(newdata)
     display.refresh()
     quit()
