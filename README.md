@@ -174,11 +174,21 @@ Now it's tucked away in the box of filament, logging data.
 
 By looking back at some notes and the timestamps on photos and screenshots I took along the way, it looks like I spent about 12 hours on this project spread over three days.
 
+## Updates
+
+**December 2024:**
+
+Spent ~2 hours updating the software to store the last ~19 days of data rather than last 20 hours, and display it grouped by day with daily min, max, and average values:
+
+![](docs/humidity26_dailygraph.JPG)
+
+(I haven't tested this beyond running it for a few hours)
+
 ## Future Ideas
 
 I'm calling this done for now to catch up on other work, but I have a few ideas for future extensions:
 
-* Instead of just buffering the last 24 hours of readings in backup RAM, buffer weeks or months of readings, and change the graph to a box plot (one box per day for the past month)
+* ~~Instead of just buffering the last 24 hours of readings in backup RAM, buffer weeks or months of readings, and change the graph to a box plot (one box per day for the past month)~~
   * Log humidity to our tiny 2MB flash memory for storage even after a reset or the battery runs down
 * Dig into why the internal RTC resets-- maybe add an external I2C RTC with a tiny coin cell battery backup
 * Measure actual power draw in various states and estimate battery life-- if needed, look into other power reduction methods (I haven't used sleep modes on this particular processor before and haven't looked under the hood into what the Python abstractions actually do in light vs. deep sleep modes relative to the processor low-level features)

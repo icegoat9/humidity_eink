@@ -1,3 +1,7 @@
+# Test drawing what was initially conceived as a box-and-whisker plot for each day's data,
+#  though in prototyping evolved to a simpler plot with just a line to show min/max values
+#  for the day and a circle to mark the mean, so this test program is slightly misnamed.
+
 import time
 import board
 import displayio
@@ -113,7 +117,6 @@ def overwrite_graph(updatedata):
     for b in range(num_boxes):
         # extract subset of data for this box
         boxdata = updatedata[data_per_box * b: data_per_box * (b+1)]
-        # TODO: de-duplicate similar code below-- this is a quick prototype
         # calculate (clipped-to-visible) versions of grouped data parameters
         dmin_y = scale_and_clip(min(boxdata))
         dmax_y = scale_and_clip(max(boxdata))
