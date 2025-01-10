@@ -183,8 +183,6 @@ Spent ~2 hours updating the software to store the last ~19 days of data rather t
 
 ![](docs/humidity26_dailygraph.JPG)
 
-(I haven't tested this beyond running it for a few hours)
-
 ## Future Ideas
 
 I'm calling this done for now to catch up on other work, but I have a few ideas for future extensions:
