@@ -1,6 +1,7 @@
 ## Humidity Monitor: Feather + E Ink
 
 ![](docs/eink_dogbone_overview.JPG)
+![](docs/humidity26_dailygraph.JPG)
 
 ## Overview
 
