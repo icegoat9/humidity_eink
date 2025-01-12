@@ -118,7 +118,6 @@ After a few tests this seemed to work as intended.
 
 Continuing my shuffle between hardware and software, I then did one more iteration on case design, with a top sheet that frames the display more nicely:
 
-![](docs/humidity18_in_case.JPG)
 ![](docs/humidity18a_in_case.JPG)
 
 This is where I left the project at the end of about four hours of work on day two. Basically done other than putting in the screws. *Or is it...?*
@@ -131,7 +130,7 @@ One challenge with humidity sensors in general is that many of them lose substan
 
 ![](docs/screenshot_AHT20.png)
 
-That may not really matter for this project, but I wanted something better-- so back on Day 1 I had ordered a higher-accuracy humidity sensor, the SHT45:
+That may not really matter for this project (though ideally I'll be storing filament below 20% RH), but I wanted something better-- so back on Day 1 I had ordered a higher-accuracy humidity sensor, the SHT45:
 
 ![](docs/screenshot_SHT45.png)
 
@@ -183,18 +182,19 @@ Spent ~2 hours updating the software to store the last ~19 days of data rather t
 
 ![](docs/humidity26_dailygraph.JPG)
 
+*Note: a number of these images show large RH% values, because I was initially testing on my desk or n a box without a gasket around the lid, but once I moved to a new box and added fresh dessicant, I seem to be keeping the enclosure at ~15% RH which should be good enough-- I just haven't taken new photos.*
+
 ## Future Ideas
 
 I'm calling this done for now to catch up on other work, but I have a few ideas for future extensions:
 
 * ~~Instead of just buffering the last 24 hours of readings in backup RAM, buffer weeks or months of readings, and change the graph to a box plot (one box per day for the past month)~~
   * Log humidity to our tiny 2MB flash memory for storage even after a reset or the battery runs down
-* Dig into why the internal RTC resets-- maybe add an external I2C RTC with a tiny coin cell battery backup
+* Dig into why the internal RTC resets on deep sleep-- maybe add an external I2C RTC with a tiny coin cell battery backup
 * Measure actual power draw in various states and estimate battery life-- if needed, look into other power reduction methods (I haven't used sleep modes on this particular processor before and haven't looked under the hood into what the Python abstractions actually do in light vs. deep sleep modes relative to the processor low-level features)
-  * Update: this first prototype seems to run for about three weeks / 450 screen refreshes between charges, which is less than expected (I've build some similar-scale battery-powered systems using different processes that run 3-6 months between charges), so I need to dig into the details of the deep sleep mode as well as any peripherals with background power draw 
+  * Update: this first prototype seems to run for about three weeks / 450 screen refreshes between charges, which is less than expected (I've build some similar-scale battery-powered systems using different processers that run 3-6 months between charges), so I need to dig into the details of the deep sleep mode as well as any peripherals with background power draw 
 * Integrate the buttons on the top of the case to provide some new functionality such as:
   * Switch between multiple display formats (large humidity number, graph, humidity and temperature, and so on)
-  * Wake the sensor from sleep and take an immediate reading (likely not possible on this system as built because these particular pins don't appear to have external hardware interrupts, but possible if I rewired it or switched to an ESP32 Feather)
+  * Wake the sensor from sleep and take an immediate reading (likely not possible on this system as built, because these particular pins don't appear to have external hardware interrupts, but possible if I rewired it or switched to an ESP32 Feather)
 * Revise the case design to remove the visible seam on the faceplate
-* Swap in a WiFi-enabled embedded board, log data to the cloud (but I expect this would dramatically cut battery life)
 
